@@ -73,10 +73,17 @@ const error = ref('')
 
 function handleLogin() {
   if (!email.value || !password.value) {
-    error.value = 'Por favor completá todos los campos.'
+    error.value = 'Por favor completa todos los campos.'
     return
   }
-  // Por ahora cualquier credencial pasa — lógica real viene con Django
-  router.push('/dashboard')
+
+  // Credenciales de desarrollador
+  const admins = ['gonzaloa0743@gmail.com']
+
+  if (admins.includes(email.value)) {
+    router.push('/admin')
+  } else {
+    router.push('/dashboard')
+  }
 }
 </script>

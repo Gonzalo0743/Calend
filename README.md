@@ -12,19 +12,20 @@ En desarrollo activo.
 
 ## Tech Stack
 
-- **Frontend:** Vue 3, Tailwind CSS, Vue Router, Pinia
-- **Backend:** Django REST Framework *(próximamente)*
+- **Frontend:** Vue 3, Tailwind CSS, Vue Router, Pinia, Chart.js
+- **Backend:** Django REST Framework _(próximamente)_
 - **Herramientas:** Vite, ESLint, Prettier
 
 ## Funcionalidades actuales
 
 - [x] Landing page completa con hero, features, testimonios y precios
-- [x] Página de login con validación
-- [x] Dashboard del administrador con métricas y lista de citas
-- [x] Navegación completa entre páginas
-- [ ] Vista del chatbot para el cliente final
-- [ ] Panel de creación y configuración de bots
-- [ ] Integración con calendario
+- [x] Login inteligente — redirige a admin o cliente según el usuario
+- [x] Dashboard del cliente con métricas y lista de citas
+- [x] Vista del chatbot con flujo de agendamiento interactivo
+- [x] Panel de administración con métricas, graficas y lista de bots
+- [ ] Editor de flujos con Vue Flow
+- [ ] Vista de flujos de trabajo
+- [ ] Canales y configuracion
 - [ ] Backend con Django
 
 ## Instalación local

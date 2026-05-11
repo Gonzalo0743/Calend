@@ -19,7 +19,9 @@ En desarrollo activo.
 ## Funcionalidades actuales
 
 - [x] Landing page completa con hero, features, testimonios y precios
-- [ ] Dashboard del administrador
+- [x] Página de login con validación
+- [x] Dashboard del administrador con métricas y lista de citas
+- [x] Navegación completa entre páginas
 - [ ] Vista del chatbot para el cliente final
 - [ ] Panel de creación y configuración de bots
 - [ ] Integración con calendario

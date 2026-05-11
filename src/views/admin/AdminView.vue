@@ -14,7 +14,7 @@
           v-for="item in navItems"
           :key="item.label"
           href="#"
-          @click.prevent="seccionActiva = item.id"
+          @click.prevent="$router.push('/admin/flujos')"
           :class="
             seccionActiva === item.id
               ? 'bg-emerald-50 text-emerald-700'

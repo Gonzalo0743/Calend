@@ -12,7 +12,7 @@ En desarrollo activo.
 
 ## Tech Stack
 
-- **Frontend:** Vue 3, Tailwind CSS, Vue Router, Pinia, Chart.js
+- **Frontend:** Vue 3, Tailwind CSS, Vue Router, Pinia, Chart.js, Vue Flow
 - **Backend:** Django REST Framework _(próximamente)_
 - **Herramientas:** Vite, ESLint, Prettier
 
@@ -23,8 +23,8 @@ En desarrollo activo.
 - [x] Dashboard del cliente con métricas y lista de citas
 - [x] Vista del chatbot con flujo de agendamiento interactivo
 - [x] Panel de administración con métricas, graficas y lista de bots
-- [ ] Editor de flujos con Vue Flow
-- [ ] Vista de flujos de trabajo
+- [x] Vista de flujos de trabajo con filtros y modal para crear nuevos
+- [x] Editor de flujos con Vue Flow — nodos arrastrables, conectables y editables
 - [ ] Canales y configuracion
 - [ ] Backend con Django
 

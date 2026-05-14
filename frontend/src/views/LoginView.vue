@@ -70,22 +70,29 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
 const email = ref('')
 const password = ref('')
 const error = ref('')
 
-function handleLogin() {
+async function handleLogin() {
   if (!email.value || !password.value) {
     error.value = 'Por favor completa todos los campos.'
     return
   }
 
-  // Credenciales de desarrollador
-  const admins = ['gonzaloa0743@gmail.com']
+  const user = await authStore.login(email.value, password.value)
 
-  if (admins.includes(email.value)) {
+  if (!user) {
+    error.value = authStore.error
+    return
+  }
+
+  if (user.role === 'admin') {
     router.push('/admin')
   } else {
     router.push('/dashboard')

@@ -9,6 +9,7 @@
 
       <nav class="flex flex-col gap-1 flex-1">
         <a
+          @click.prevent="$router.push('/dashboard')"
           href="#"
           class="flex items-center gap-3 px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-medium"
         >
@@ -23,6 +24,7 @@
           Inicio
         </a>
         <a
+          @click.prevent="$router.push('/dashboard')"
           href="#"
           class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 text-sm transition-colors"
         >
@@ -37,6 +39,7 @@
           Citas
         </a>
         <a
+          @click.prevent="$router.push('/chat')"
           href="#"
           class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-50 text-sm transition-colors"
         >
@@ -48,7 +51,7 @@
               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
             />
           </svg>
-          Chatbots
+          Chatbot
         </a>
         <a
           href="#"
@@ -76,7 +79,7 @@
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
-          Estadísticas
+          Estadisticas
         </a>
       </nav>
 
@@ -88,7 +91,7 @@
           GA
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-medium text-gray-900 truncate">Gonzalo Acuña</p>
+          <p class="text-xs font-medium text-gray-900 truncate">Gonzalo Acuna</p>
           <p class="text-xs text-gray-400 truncate">Admin</p>
         </div>
         <button @click="logout" class="text-gray-400 hover:text-gray-600 transition">
@@ -109,8 +112,8 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="text-lg font-medium text-gray-900">Buenos días, Gonzalo</h1>
-          <p class="text-sm text-gray-400">Aquí está el resumen de hoy</p>
+          <h1 class="text-lg font-medium text-gray-900">Buenos dias, Gonzalo</h1>
+          <p class="text-sm text-gray-400">Aqui esta el resumen de hoy</p>
         </div>
         <button
           class="bg-emerald-400 hover:bg-emerald-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
@@ -119,7 +122,7 @@
         </button>
       </div>
 
-      <!-- Métricas -->
+      <!-- Metricas -->
       <div class="grid grid-cols-4 gap-4 mb-8">
         <div class="bg-white border border-gray-100 rounded-2xl p-5">
           <p class="text-xs text-gray-400 mb-1">Citas hoy</p>
@@ -137,7 +140,7 @@
           <p class="text-xs text-emerald-500 mt-1">+5 nuevos</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl p-5">
-          <p class="text-xs text-gray-400 mb-1">Tasa de confirmación</p>
+          <p class="text-xs text-gray-400 mb-1">Tasa de confirmacion</p>
           <p class="text-2xl font-medium text-gray-900">94%</p>
           <p class="text-xs text-gray-400 mt-1">Promedio del mes</p>
         </div>
@@ -151,7 +154,6 @@
             >Ver todas →</a
           >
         </div>
-
         <div class="flex flex-col gap-3">
           <div
             v-for="cita in citas"
@@ -197,7 +199,7 @@ function logout() {
 const citas = [
   {
     id: 1,
-    nombre: 'María Rodríguez',
+    nombre: 'Maria Rodriguez',
     iniciales: 'MR',
     servicio: 'Consulta general',
     hora: '9:00 am',
@@ -207,13 +209,13 @@ const citas = [
     id: 2,
     nombre: 'Carlos Mora',
     iniciales: 'CM',
-    servicio: 'Revisión dental',
+    servicio: 'Revision dental',
     hora: '10:30 am',
     estado: 'Confirmada',
   },
   {
     id: 3,
-    nombre: 'Laura Jiménez',
+    nombre: 'Laura Jimenez',
     iniciales: 'LJ',
     servicio: 'Consulta general',
     hora: '11:00 am',
@@ -221,7 +223,7 @@ const citas = [
   },
   {
     id: 4,
-    nombre: 'Andrés Vargas',
+    nombre: 'Andres Vargas',
     iniciales: 'AV',
     servicio: 'Control mensual',
     hora: '2:00 pm',
@@ -229,7 +231,7 @@ const citas = [
   },
   {
     id: 5,
-    nombre: 'Sofía Castro',
+    nombre: 'Sofia Castro',
     iniciales: 'SC',
     servicio: 'Primera consulta',
     hora: '3:30 pm',

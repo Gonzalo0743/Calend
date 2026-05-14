@@ -55,8 +55,13 @@
 
       <!-- Footer -->
       <p class="text-center text-xs text-gray-400 mt-6">
-        ¿No tenés cuenta?
-        <a href="#" class="text-emerald-500 hover:text-emerald-600 transition">Contactanos</a>
+        <a
+          @click.prevent="$router.push('/')"
+          href="#"
+          class="text-emerald-500 hover:text-emerald-600 transition"
+        >
+          ← Volver al inicio
+        </a>
       </p>
     </div>
   </div>

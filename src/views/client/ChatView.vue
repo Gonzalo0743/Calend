@@ -6,6 +6,19 @@
     >
       <!-- Header -->
       <div class="flex items-center gap-3 px-4 py-4 border-b border-gray-100 bg-white">
+        <button
+          @click="$router.push('/dashboard')"
+          class="text-gray-400 hover:text-gray-600 transition mr-1"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
         <div
           class="w-9 h-9 rounded-full bg-emerald-400 flex items-center justify-center flex-shrink-0"
         >

@@ -13,6 +13,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await api.post('/auth/login/', { username, password })
       user.value = response.data
+      localStorage.setItem('access_token', response.data.access)
+      localStorage.setItem('refresh_token', response.data.refresh)
       return response.data
     } catch (err) {
       error.value = err.response?.data?.error || 'Error al iniciar sesion'
@@ -27,15 +29,24 @@ export const useAuthStore = defineStore('auth', () => {
       await api.post('/auth/logout/')
     } finally {
       user.value = null
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
     }
   }
 
   async function fetchMe() {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      user.value = null
+      return
+    }
     try {
       const response = await api.get('/auth/me/')
       user.value = response.data
     } catch {
       user.value = null
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
     }
   }
 

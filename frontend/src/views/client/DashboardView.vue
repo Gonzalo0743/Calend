@@ -126,18 +126,15 @@
       <div class="grid grid-cols-4 gap-4 mb-8">
         <div class="bg-white border border-gray-100 rounded-2xl p-5">
           <p class="text-xs text-gray-400 mb-1">Citas hoy</p>
-          <p class="text-2xl font-medium text-gray-900">8</p>
-          <p class="text-xs text-emerald-500 mt-1">+2 vs ayer</p>
+          <p class="text-2xl font-medium text-gray-900">{{ metricas.citas_hoy }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl p-5">
           <p class="text-xs text-gray-400 mb-1">Este mes</p>
-          <p class="text-2xl font-medium text-gray-900">143</p>
-          <p class="text-xs text-emerald-500 mt-1">+18% vs mes anterior</p>
+          <p class="text-2xl font-medium text-gray-900">{{ metricas.citas_mes }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl p-5">
           <p class="text-xs text-gray-400 mb-1">Clientes activos</p>
-          <p class="text-2xl font-medium text-gray-900">57</p>
-          <p class="text-xs text-emerald-500 mt-1">+5 nuevos</p>
+          <p class="text-2xl font-medium text-gray-900">{{ metricas.contactos }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl p-5">
           <p class="text-xs text-gray-400 mb-1">Tasa de confirmacion</p>
@@ -160,25 +157,34 @@
             :key="cita.id"
             class="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"
           >
-            <div class="flex items-center gap-3">
-              <div
-                class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-medium text-emerald-700"
-              >
-                {{ cita.iniciales }}
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-900">{{ cita.nombre }}</p>
-                <p class="text-xs text-gray-400">{{ cita.servicio }}</p>
-              </div>
+            <div v-if="citas.length === 0" class="text-sm text-gray-400 text-center py-6">
+              No hay citas registradas todavia
             </div>
-            <div class="flex items-center gap-4">
-              <p class="text-sm text-gray-600">{{ cita.hora }}</p>
-              <span
-                :class="estadoClase(cita.estado)"
-                class="text-xs px-2.5 py-1 rounded-full font-medium"
-              >
-                {{ cita.estado }}
-              </span>
+            <div
+              v-for="cita in citas"
+              :key="cita.id"
+              class="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-medium text-emerald-700"
+                >
+                  {{ cita.iniciales }}
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-900">{{ cita.nombre }}</p>
+                  <p class="text-xs text-gray-400">{{ cita.servicio }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-4">
+                <p class="text-sm text-gray-600">{{ cita.hora }}</p>
+                <span
+                  :class="estadoClase(cita.estado)"
+                  class="text-xs px-2.5 py-1 rounded-full font-medium"
+                >
+                  {{ cita.estado }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -188,60 +194,43 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/auth'
+import api from '../../services/api'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-function logout() {
-  router.push('/login')
+const citas = ref([])
+const metricas = ref({
+  citas_hoy: 0,
+  citas_mes: 0,
+  contactos: 0,
+})
+
+async function cargarDatos() {
+  try {
+    const [citasRes, metricasRes] = await Promise.all([api.get('/citas/'), api.get('/metricas/')])
+    citas.value = citasRes.data
+    metricas.value = metricasRes.data
+  } catch (err) {
+    console.error('Error cargando datos:', err)
+  }
 }
 
-const citas = [
-  {
-    id: 1,
-    nombre: 'Maria Rodriguez',
-    iniciales: 'MR',
-    servicio: 'Consulta general',
-    hora: '9:00 am',
-    estado: 'Confirmada',
-  },
-  {
-    id: 2,
-    nombre: 'Carlos Mora',
-    iniciales: 'CM',
-    servicio: 'Revision dental',
-    hora: '10:30 am',
-    estado: 'Confirmada',
-  },
-  {
-    id: 3,
-    nombre: 'Laura Jimenez',
-    iniciales: 'LJ',
-    servicio: 'Consulta general',
-    hora: '11:00 am',
-    estado: 'Pendiente',
-  },
-  {
-    id: 4,
-    nombre: 'Andres Vargas',
-    iniciales: 'AV',
-    servicio: 'Control mensual',
-    hora: '2:00 pm',
-    estado: 'Confirmada',
-  },
-  {
-    id: 5,
-    nombre: 'Sofia Castro',
-    iniciales: 'SC',
-    servicio: 'Primera consulta',
-    hora: '3:30 pm',
-    estado: 'Cancelada',
-  },
-]
+function logout() {
+  authStore.logout()
+  router.push('/login')
+}
 
 function estadoClase(estado) {
   if (estado === 'Confirmada') return 'bg-emerald-50 text-emerald-700'
   if (estado === 'Pendiente') return 'bg-amber-50 text-amber-700'
   if (estado === 'Cancelada') return 'bg-red-50 text-red-600'
 }
+
+onMounted(() => {
+  cargarDatos()
+})
 </script>

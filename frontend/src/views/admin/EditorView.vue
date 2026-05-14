@@ -19,7 +19,7 @@
           </svg>
         </button>
         <div>
-          <h1 class="text-sm font-medium text-gray-900">Bot Clinica Verde</h1>
+          <h1 class="text-sm font-medium text-gray-900">{{ botNombre }}</h1>
           <p class="text-xs text-gray-400">Editor de flujo</p>
         </div>
       </div>
@@ -30,9 +30,11 @@
           Vista previa
         </button>
         <button
-          class="text-xs bg-emerald-400 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+          @click="guardarFlujo"
+          :disabled="guardando"
+          class="text-xs bg-emerald-400 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
         >
-          Guardar
+          {{ guardando ? 'Guardando...' : 'Guardar' }}
         </button>
       </div>
     </div>
@@ -85,15 +87,15 @@
           :default-viewport="{ zoom: 1 }"
           class="bg-gray-50"
           @node-click="onNodeClick"
+          @connect="onConnect"
         >
+          >
           <Background pattern-color="#e5e7eb" :gap="20" />
           <Controls />
           <MiniMap />
 
           <template #node-mensaje="{ data }">
-            <div
-              class="bg-white border-2 border-emerald-300 rounded-2xl px-4 py-3 min-w-48 shadow-sm"
-            >
+            <div class="bg-white border-2 border-emerald-300 rounded-2xl px-4 py-3 shadow-sm">
               <div class="flex items-center gap-2 mb-2">
                 <div class="w-5 h-5 rounded-md bg-emerald-400 flex items-center justify-center">
                   <svg
@@ -119,7 +121,10 @@
           </template>
 
           <template #node-opciones="{ data }">
-            <div class="bg-white border-2 border-blue-300 rounded-2xl px-4 py-3 min-w-48 shadow-sm">
+            <div
+              class="bg-white border-2 border-blue-300 rounded-2xl px-4 py-3 shadow-sm"
+              style="min-width: 280px"
+            >
               <div class="flex items-center gap-2 mb-2">
                 <div class="w-5 h-5 rounded-md bg-blue-400 flex items-center justify-center">
                   <svg
@@ -154,7 +159,8 @@
 
           <template #node-condicion="{ data }">
             <div
-              class="bg-white border-2 border-amber-300 rounded-2xl px-4 py-3 min-w-48 shadow-sm"
+              class="bg-white border-2 border-amber-300 rounded-2xl px-4 py-3 shadow-sm"
+              style="min-width: 280px"
             >
               <div class="flex items-center gap-2 mb-2">
                 <div class="w-5 h-5 rounded-md bg-amber-400 flex items-center justify-center">
@@ -183,7 +189,8 @@
 
           <template #node-esperar="{ data }">
             <div
-              class="bg-white border-2 border-purple-300 rounded-2xl px-4 py-3 min-w-48 shadow-sm"
+              class="bg-white border-2 border-purple-300 rounded-2xl px-4 py-3 shadow-sm"
+              style="min-width: 280px"
             >
               <div class="flex items-center gap-2 mb-2">
                 <div class="w-5 h-5 rounded-md bg-purple-400 flex items-center justify-center">
@@ -336,7 +343,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -344,10 +352,17 @@ import { MiniMap } from '@vue-flow/minimap'
 import { Position, Handle } from '@vue-flow/core'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
+import api from '@/services/api'
 
 const { addNodes } = useVueFlow()
+const route = useRoute()
 
+const botId = ref(route.query.id || null)
+const botNombre = ref('Editor de flujo')
 const nodoSeleccionado = ref(null)
+const guardando = ref(false)
+const estadoBot = ref('Borrador')
+const router = useRouter()
 
 const nodes = ref([
   {
@@ -356,24 +371,44 @@ const nodes = ref([
     position: { x: 250, y: 80 },
     data: { texto: 'Hola, bienvenido. Como te llamas?' },
   },
-  {
-    id: '2',
-    type: 'opciones',
-    position: { x: 200, y: 260 },
-    data: { opciones: ['Agendar cita', 'Ver mis citas', 'Cancelar cita'] },
-  },
-  {
-    id: '3',
-    type: 'condicion',
-    position: { x: 220, y: 460 },
-    data: { condicion: 'opcion == Agendar cita' },
-  },
 ])
 
-const edges = ref([
-  { id: 'e1-2', source: '1', target: '2', animated: true, style: { stroke: '#34d399' } },
-  { id: 'e2-3', source: '2', target: '3', animated: true, style: { stroke: '#34d399' } },
-])
+const edges = ref([])
+
+async function cargarBot() {
+  if (!botId.value) return
+  try {
+    const res = await api.get(`/bots/${botId.value}/`)
+    botNombre.value = res.data.nombre
+    estadoBot.value = res.data.estado
+
+    if (res.data.flujo && res.data.flujo.nodes && res.data.flujo.nodes.length > 0) {
+      nodes.value = res.data.flujo.nodes
+      edges.value = res.data.flujo.edges || []
+    }
+  } catch (err) {
+    console.error('Error cargando bot:', err)
+  }
+}
+
+async function guardarFlujo() {
+  if (!botId.value) return
+  guardando.value = true
+  try {
+    await api.put(`/bots/${botId.value}/`, {
+      flujo: {
+        nodes: nodes.value,
+        edges: edges.value,
+      },
+      estado: 'Activo',
+    })
+    router.push('/admin/flujos')
+  } catch (err) {
+    console.error('Error guardando flujo:', err)
+  } finally {
+    guardando.value = false
+  }
+}
 
 const bloquesDisponibles = [
   {
@@ -408,7 +443,7 @@ const bloquesDisponibles = [
   },
 ]
 
-let idContador = 4
+let idContador = 10
 
 function onDragStart(event, tipo) {
   event.dataTransfer.setData('tipo', tipo)
@@ -451,4 +486,18 @@ function eliminarNodo() {
   )
   nodoSeleccionado.value = null
 }
+
+function onConnect(connection) {
+  edges.value.push({
+    id: `e${connection.source}-${connection.target}`,
+    source: connection.source,
+    target: connection.target,
+    animated: true,
+    style: { stroke: '#34d399' },
+  })
+}
+
+onMounted(() => {
+  cargarBot()
+})
 </script>

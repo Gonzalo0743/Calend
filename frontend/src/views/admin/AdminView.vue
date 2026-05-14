@@ -25,23 +25,19 @@
     <div class="grid grid-cols-4 gap-4 mb-8">
       <div class="bg-white border border-gray-100 rounded-2xl p-5">
         <p class="text-xs text-gray-400 mb-1">Bots activos</p>
-        <p class="text-2xl font-medium text-gray-900">12</p>
-        <p class="text-xs text-emerald-500 mt-1">+2 este mes</p>
+        <p class="text-2xl font-medium text-gray-900">{{ metricas.bots_activos }}</p>
       </div>
       <div class="bg-white border border-gray-100 rounded-2xl p-5">
         <p class="text-xs text-gray-400 mb-1">Conversaciones</p>
-        <p class="text-2xl font-medium text-gray-900">1,248</p>
-        <p class="text-xs text-emerald-500 mt-1">+18% vs semana anterior</p>
+        <p class="text-2xl font-medium text-gray-900">{{ metricas.conversaciones_semana }}</p>
       </div>
       <div class="bg-white border border-gray-100 rounded-2xl p-5">
         <p class="text-xs text-gray-400 mb-1">Clientes activos</p>
-        <p class="text-2xl font-medium text-gray-900">8</p>
-        <p class="text-xs text-emerald-500 mt-1">+1 nuevo</p>
+        <p class="text-2xl font-medium text-gray-900">{{ metricas.contactos }}</p>
       </div>
       <div class="bg-white border border-gray-100 rounded-2xl p-5">
         <p class="text-xs text-gray-400 mb-1">Citas agendadas</p>
-        <p class="text-2xl font-medium text-gray-900">340</p>
-        <p class="text-xs text-emerald-500 mt-1">+22% vs semana anterior</p>
+        <p class="text-2xl font-medium text-gray-900">{{ metricas.citas_mes }}</p>
       </div>
     </div>
 
@@ -57,7 +53,7 @@
       </div>
     </div>
 
-    <!-- Bots recientes -->
+    <!-- Bots -->
     <div class="bg-white border border-gray-100 rounded-2xl p-6">
       <div class="flex items-center justify-between mb-5">
         <h2 class="text-sm font-medium text-gray-900">Bots activos</h2>
@@ -68,48 +64,50 @@
           + Nuevo bot
         </button>
       </div>
-      <div class="flex flex-col gap-3">
-        <div
-          v-for="bot in bots"
-          :key="bot.id"
-          class="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"
-        >
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <svg
-                class="w-4 h-4 text-emerald-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p class="text-sm font-medium text-gray-900">{{ bot.nombre }}</p>
-              <p class="text-xs text-gray-400">{{ bot.cliente }}</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-6">
-            <div class="text-right">
-              <p class="text-xs text-gray-400">Conversaciones</p>
-              <p class="text-sm font-medium text-gray-900">{{ bot.conversaciones }}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-xs text-gray-400">Citas</p>
-              <p class="text-sm font-medium text-gray-900">{{ bot.citas }}</p>
-            </div>
-            <span
-              class="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-medium"
+      <div v-if="bots.length === 0" class="text-sm text-gray-400 text-center py-6">
+        No hay bots creados todavia
+      </div>
+      <div
+        v-for="bot in bots"
+        :key="bot.id"
+        class="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"
+      >
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center">
+            <svg
+              class="w-4 h-4 text-emerald-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              Activo
-            </span>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              />
+            </svg>
           </div>
+          <div>
+            <p class="text-sm font-medium text-gray-900">{{ bot.nombre }}</p>
+            <p class="text-xs text-gray-400">{{ bot.cliente }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="text-right">
+            <p class="text-xs text-gray-400">Conversaciones</p>
+            <p class="text-sm font-medium text-gray-900">{{ bot.conversaciones }}</p>
+          </div>
+          <span
+            :class="
+              bot.estado === 'Activo'
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-gray-100 text-gray-500'
+            "
+            class="text-xs px-2.5 py-1 rounded-full font-medium"
+          >
+            {{ bot.estado }}
+          </span>
         </div>
       </div>
     </div>
@@ -117,7 +115,9 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import AdminLayout from '@/components/AdminLayout.vue'
+import api from '@/services/api'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -130,6 +130,25 @@ import {
 } from 'chart.js'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler)
+
+const metricas = ref({
+  bots_activos: 0,
+  conversaciones_semana: 0,
+  contactos: 0,
+  citas_mes: 0,
+})
+
+const bots = ref([])
+
+async function cargarDatos() {
+  try {
+    const [metricasRes, botsRes] = await Promise.all([api.get('/metricas/'), api.get('/bots/')])
+    metricas.value = metricasRes.data
+    bots.value = botsRes.data
+  } catch (err) {
+    console.error('Error cargando datos:', err)
+  }
+}
 
 const dias = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
 
@@ -169,43 +188,14 @@ const citasData = {
 
 const chartOptions = {
   responsive: true,
-  plugins: {
-    legend: { display: false },
-  },
+  plugins: { legend: { display: false } },
   scales: {
-    x: {
-      grid: { display: false },
-      ticks: { font: { size: 11 }, color: '#9ca3af' },
-    },
-    y: {
-      grid: { color: '#f3f4f6' },
-      ticks: { font: { size: 11 }, color: '#9ca3af' },
-    },
+    x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
+    y: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
   },
 }
 
-const bots = [
-  {
-    id: 1,
-    nombre: 'Bot Clinica Verde',
-    cliente: 'Clinica Verde S.A.',
-    conversaciones: 423,
-    citas: 118,
-  },
-  { id: 2, nombre: 'Bot FitLife', cliente: 'FitLife Gym', conversaciones: 312, citas: 89 },
-  {
-    id: 3,
-    nombre: 'Bot Consultorio Bienestar',
-    cliente: 'Consultorio Bienestar',
-    conversaciones: 289,
-    citas: 76,
-  },
-  {
-    id: 4,
-    nombre: 'Bot Dental Sonrisa',
-    cliente: 'Clinica Dental Sonrisa',
-    conversaciones: 224,
-    citas: 57,
-  },
-]
+onMounted(() => {
+  cargarDatos()
+})
 </script>

@@ -13,23 +13,24 @@ En desarrollo activo.
 ## Tech Stack
 
 - **Frontend:** Vue 3, Tailwind CSS, Vue Router, Pinia, Chart.js, Vue Flow
-- **Backend:** Django REST Framework, SQLite
+- **Backend:** Django REST Framework, SQLite, JWT
 - **Herramientas:** Vite, ESLint, Prettier
 
 ## Funcionalidades actuales
 
 - [x] Landing page completa con hero, features, testimonios y precios
-- [x] Autenticacion real con Django — login por email, deteccion de rol
-- [x] Dashboard del cliente con métricas y lista de citas
+- [x] Autenticacion real con Django — login por email, deteccion de rol, JWT
+- [x] Proteccion de rutas con guards de Vue Router
+- [x] Dashboard del cliente con métricas y lista de citas reales
 - [x] Vista del chatbot con flujo de agendamiento interactivo
-- [x] Panel de administracion con métricas, graficas y lista de bots
-- [x] Vista de flujos de trabajo con filtros y modal para crear nuevos
-- [x] Editor de flujos con Vue Flow — nodos arrastrables, conectables y editables
+- [x] Panel de administracion con métricas y lista de bots reales
+- [x] Editor de flujos con Vue Flow — nodos arrastrables, conectables y guardado en base de datos
+- [x] Crear, editar y eliminar bots desde la interfaz
 - [x] Canales — conexion y gestion de canales de comunicacion
 - [x] Contactos — lista de contactos con busqueda y filtros
 - [x] Configuracion — perfil, seguridad, notificaciones y ajustes de plataforma
-- [ ] Endpoints de citas, bots y contactos
-- [ ] Proteccion de rutas con guards de Vue Router
+- [ ] Endpoints de citas y contactos conectados al frontend
+- [ ] Chat funcional conectado al backend
 
 ## Instalación local
 

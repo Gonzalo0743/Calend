@@ -84,14 +84,22 @@
               </span>
             </td>
             <td class="px-6 py-4 text-sm text-gray-500">{{ flujo.conversaciones }}</td>
-            <td class="px-6 py-4 text-sm text-gray-400">{{ flujo.modificado }}</td>
+            <td class="px-6 py-4 text-sm text-gray-400">{{ formatearFecha(flujo.modificado) }}</td>
             <td class="px-6 py-4">
-              <button
-                @click="$router.push('/admin/flujos/editor')"
-                class="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
-              >
-                Editar
-              </button>
+              <div class="flex items-center gap-3">
+                <button
+                  @click="$router.push(`/admin/flujos/editor?id=${flujo.id}`)"
+                  class="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+                >
+                  Editar
+                </button>
+                <button
+                  @click="confirmarEliminar(flujo)"
+                  class="text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
+                >
+                  Eliminar
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -143,56 +151,79 @@
         </div>
       </div>
     </div>
+    <div
+      v-if="mostrarModalEliminar"
+      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-2xl p-8 w-full max-w-sm shadow-lg">
+        <h2 class="text-base font-medium text-gray-900 mb-1">Eliminar flujo</h2>
+        <p class="text-sm text-gray-400 mb-6">
+          ¿Estas seguro que queres eliminar
+          <strong class="text-gray-700">{{ flujoAEliminar?.nombre }}</strong
+          >? Esta accion no se puede deshacer.
+        </p>
+        <div class="flex gap-3">
+          <button
+            @click="mostrarModalEliminar = false"
+            class="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="eliminarFlujo"
+            class="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
   </AdminLayout>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/components/AdminLayout.vue'
+import api from '@/services/api'
 
 const router = useRouter()
 const mostrarModal = ref(false)
 const nuevoNombre = ref('')
 const nuevoCliente = ref('')
 const filtroActivo = ref('Todos')
-
 const filtros = ['Todos', 'Activos', 'Borradores']
 
-const flujos = ref([
-  {
-    id: 1,
-    nombre: 'Bot Clinica Verde',
-    cliente: 'Clinica Verde S.A.',
-    estado: 'Activo',
-    conversaciones: 423,
-    modificado: 'Hace 2 horas',
-  },
-  {
-    id: 2,
-    nombre: 'Bot FitLife',
-    cliente: 'FitLife Gym',
-    estado: 'Activo',
-    conversaciones: 312,
-    modificado: 'Hace 1 dia',
-  },
-  {
-    id: 3,
-    nombre: 'Bot Consultorio Bienestar',
-    cliente: 'Consultorio Bienestar',
-    estado: 'Activo',
-    conversaciones: 289,
-    modificado: 'Hace 3 dias',
-  },
-  {
-    id: 4,
-    nombre: 'Bot Dental Sonrisa',
-    cliente: 'Clinica Dental Sonrisa',
-    estado: 'Borrador',
-    conversaciones: 0,
-    modificado: 'Hace 5 dias',
-  },
-])
+const mostrarModalEliminar = ref(false)
+const flujoAEliminar = ref(null)
+
+const flujos = ref([])
+
+async function cargarFlujos() {
+  try {
+    const res = await api.get('/bots/')
+    flujos.value = res.data
+  } catch (err) {
+    console.error('Error cargando flujos:', err)
+  }
+}
+
+function confirmarEliminar(flujo) {
+  flujoAEliminar.value = flujo
+  mostrarModalEliminar.value = true
+}
+
+async function eliminarFlujo() {
+  if (!flujoAEliminar.value) return
+  try {
+    await api.delete(`/bots/${flujoAEliminar.value.id}/`)
+    flujos.value = flujos.value.filter((f) => f.id !== flujoAEliminar.value.id)
+    mostrarModalEliminar.value = false
+    flujoAEliminar.value = null
+  } catch (err) {
+    console.error('Error eliminando flujo:', err)
+  }
+}
 
 const flujosFiltrados = computed(() => {
   if (filtroActivo.value === 'Todos') return flujos.value
@@ -200,19 +231,31 @@ const flujosFiltrados = computed(() => {
   return flujos.value.filter((f) => f.estado === 'Borrador')
 })
 
-function crearFlujo() {
+async function crearFlujo() {
   if (!nuevoNombre.value || !nuevoCliente.value) return
-  flujos.value.push({
-    id: Date.now(),
-    nombre: nuevoNombre.value,
-    cliente: nuevoCliente.value,
-    estado: 'Borrador',
-    conversaciones: 0,
-    modificado: 'Ahora',
-  })
-  mostrarModal.value = false
-  nuevoNombre.value = ''
-  nuevoCliente.value = ''
-  router.push('/admin/flujos/editor')
+  try {
+    const res = await api.post('/bots/', {
+      nombre: nuevoNombre.value,
+      cliente: nuevoCliente.value,
+      estado: 'Borrador',
+    })
+    flujos.value.push(res.data)
+    mostrarModal.value = false
+    nuevoNombre.value = ''
+    nuevoCliente.value = ''
+    router.push(`/admin/flujos/editor?id=${res.data.id}`)
+  } catch (err) {
+    console.error('Error creando flujo:', err)
+  }
 }
+
+function formatearFecha(fecha) {
+  if (!fecha) return ''
+  const d = new Date(fecha)
+  return d.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+onMounted(() => {
+  cargarFlujos()
+})
 </script>

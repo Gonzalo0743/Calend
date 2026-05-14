@@ -80,6 +80,8 @@ const password = ref('')
 const error = ref('')
 
 async function handleLogin() {
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
   if (!email.value || !password.value) {
     error.value = 'Por favor completa todos los campos.'
     return

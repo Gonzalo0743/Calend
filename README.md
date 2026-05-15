@@ -22,27 +22,27 @@ En desarrollo activo.
 - [x] Autenticacion real con Django — login por email, deteccion de rol, JWT
 - [x] Proteccion de rutas con guards de Vue Router
 - [x] Dashboard del cliente con métricas y lista de citas reales
-- [x] Vista del chatbot con flujo de agendamiento interactivo
+- [x] Vista del chatbot con flujo dinamico — lee los nodos del editor en tiempo real
 - [x] Panel de administracion con métricas y lista de bots reales
 - [x] Editor de flujos con Vue Flow — nodos arrastrables, conectables y guardado en base de datos
+- [x] Vista previa del flujo directamente desde el editor
 - [x] Crear, editar y eliminar bots desde la interfaz
+- [x] Gestion de clientes — crear usuarios y asignarles bots
 - [x] Canales — conexion y gestion de canales de comunicacion
 - [x] Contactos — lista de contactos con busqueda y filtros
 - [x] Configuracion — perfil, seguridad, notificaciones y ajustes de plataforma
-- [ ] Endpoints de citas y contactos conectados al frontend
-- [ ] Chat funcional conectado al backend
+- [ ] Citas guardadas en base de datos desde el chat
+- [ ] Contactos guardados automaticamente al interactuar con el bot
 
 ## Instalación local
 
 ### Backend
-
 ```bash
 cd backend
 py manage.py runserver
 ```
 
 ### Frontend
-
 ```bash
 cd frontend
 npm install

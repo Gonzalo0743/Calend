@@ -152,39 +152,33 @@
           >
         </div>
         <div class="flex flex-col gap-3">
+          <div v-if="citas.length === 0" class="text-sm text-gray-400 text-center py-6">
+            No hay citas registradas todavia
+          </div>
           <div
             v-for="cita in citas"
             :key="cita.id"
             class="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"
           >
-            <div v-if="citas.length === 0" class="text-sm text-gray-400 text-center py-6">
-              No hay citas registradas todavia
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-medium text-emerald-700"
+              >
+                {{ cita.iniciales }}
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900">{{ cita.nombre }}</p>
+                <p class="text-xs text-gray-400">{{ cita.servicio }}</p>
+              </div>
             </div>
-            <div
-              v-for="cita in citas"
-              :key="cita.id"
-              class="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"
-            >
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-medium text-emerald-700"
-                >
-                  {{ cita.iniciales }}
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-900">{{ cita.nombre }}</p>
-                  <p class="text-xs text-gray-400">{{ cita.servicio }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-4">
-                <p class="text-sm text-gray-600">{{ cita.hora }}</p>
-                <span
-                  :class="estadoClase(cita.estado)"
-                  class="text-xs px-2.5 py-1 rounded-full font-medium"
-                >
-                  {{ cita.estado }}
-                </span>
-              </div>
+            <div class="flex items-center gap-4">
+              <p class="text-sm text-gray-600">{{ cita.hora }}</p>
+              <span
+                :class="estadoClase(cita.estado)"
+                class="text-xs px-2.5 py-1 rounded-full font-medium"
+              >
+                {{ cita.estado }}
+              </span>
             </div>
           </div>
         </div>

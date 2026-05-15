@@ -227,55 +227,62 @@ async function procesarNodo(nodo) {
 async function manejarRespuestaUsuario(texto) {
   if (!nodoActual.value) return
 
-  // Guardar datos relevantes
-  if (nodoActual.value.type === 'mensaje' && mensajes.value.length === 1) {
-    nombreCliente = texto
-  }
-
   const nodo = nodoActual.value
 
+  // Guardar nombre del cliente en el primer input
+  if (!nombreCliente && nodo.type === 'mensaje') {
+    nombreCliente = texto
+    // Registrar contacto automáticamente
+    try {
+      await api.post('/contactos/', {
+        nombre: nombreCliente,
+        canal: 'Webchat',
+        bot: botId.value,
+      })
+    } catch (err) {
+      console.error('Error registrando contacto:', err)
+    }
+  }
+
+  // Guardar hora seleccionada si parece un horario
+  if (texto.includes('am') || texto.includes('pm')) {
+    horaSeleccionada = texto
+  }
+
   if (nodo.type === 'opciones') {
-    // Buscar si hay condicion conectada que coincida con la opcion elegida
-    const siguiente = obtenerSiguienteNodo(nodo.id)
-    if (!siguiente) return
+    const edgesDesdeOpciones = edges.value.filter((e) => e.source === nodo.id)
+    let nodoDestino = null
 
-    if (siguiente.type === 'condicion') {
-      // Evaluar condiciones — buscar la que coincide con el texto
-      const edgesDesdeOpciones = edges.value.filter((e) => e.source === nodo.id)
-      let nodoDestino = null
-
-      for (const edge of edgesDesdeOpciones) {
-        const posibleCondicion = nodos.value.find((n) => n.id === edge.target)
-        if (posibleCondicion && posibleCondicion.type === 'condicion') {
-          const condicion = posibleCondicion.data.condicion || ''
-          const partes = condicion.split('==').map((p) => p.trim())
-          if (partes[1] && texto.toLowerCase().includes(partes[1].toLowerCase())) {
-            nodoDestino = obtenerSiguienteNodo(posibleCondicion.id)
-            break
-          }
+    for (const edge of edgesDesdeOpciones) {
+      const posibleNodo = nodos.value.find((n) => n.id === edge.target)
+      if (posibleNodo && posibleNodo.type === 'condicion') {
+        const condicion = posibleNodo.data.condicion || ''
+        const partes = condicion.split('==').map((p) => p.trim())
+        if (partes[1] && texto.toLowerCase().includes(partes[1].toLowerCase())) {
+          nodoDestino = obtenerSiguienteNodo(posibleNodo.id)
+          break
         }
       }
-
-      if (nodoDestino) {
-        await procesarNodo(nodoDestino)
-      } else {
-        await procesarNodo(siguiente)
-      }
-    } else {
-      await procesarNodo(siguiente)
     }
+
+    if (!nodoDestino) {
+      const siguiente = obtenerSiguienteNodo(nodo.id)
+      nodoDestino = siguiente
+    }
+
+    if (nodoDestino) await procesarNodo(nodoDestino)
   } else {
-    // Para nodos mensaje, avanzar al siguiente
     const siguiente = obtenerSiguienteNodo(nodo.id)
 
-    // Si el nodo actual es el último mensaje antes de terminar, guardar cita
     if (!siguiente) {
+      // Fin del flujo — guardar cita
       try {
         await api.post('/citas/', {
-          nombre: nombreCliente || texto,
+          nombre: nombreCliente || 'Cliente',
           servicio: 'Consulta general',
           hora: horaSeleccionada || texto,
           estado: 'Confirmada',
+          bot: botId.value,
         })
       } catch (err) {
         console.error('Error guardando cita:', err)

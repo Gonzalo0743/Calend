@@ -15,4 +15,8 @@ urlpatterns = [
     path('contactos/', views.contactos_list, name='contactos-list'),
 
     path('metricas/', views.metricas, name='metricas'),
+
+    path('clientes/', views.clientes_list, name='clientes-list'),
+    path('clientes/crear/', views.crear_cliente, name='crear-cliente'),
+    path('clientes/asignar-bot/', views.asignar_bot, name='asignar-bot'),
 ]

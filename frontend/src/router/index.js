@@ -9,6 +9,7 @@ import EditorView from '../views/admin/EditorView.vue'
 import CanalesView from '../views/admin/CanalesView.vue'
 import ContactosView from '../views/admin/ContactosView.vue'
 import ConfiguracionView from '../views/admin/ConfiguracionView.vue'
+import ClientesView from '../views/admin/ClientesView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
@@ -70,6 +71,12 @@ const router = createRouter({
       path: '/admin/configuracion',
       name: 'configuracion',
       component: ConfiguracionView,
+      meta: { requiresAuth: true, role: 'admin' },
+    },
+    {
+      path: '/admin/clientes',
+      name: 'clientes',
+      component: ClientesView,
       meta: { requiresAuth: true, role: 'admin' },
     },
   ],

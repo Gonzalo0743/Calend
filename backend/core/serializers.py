@@ -4,13 +4,17 @@ from .models import Bot, Cita, Contacto
 
 class BotSerializer(serializers.ModelSerializer):
     conversaciones = serializers.SerializerMethodField()
+    usuario_email = serializers.SerializerMethodField()
 
     class Meta:
         model = Bot
-        fields = ['id', 'nombre', 'cliente', 'estado', 'flujo', 'conversaciones', 'creado', 'modificado']
+        fields = ['id', 'nombre', 'cliente', 'estado', 'flujo', 'conversaciones', 'usuario', 'usuario_email', 'creado', 'modificado']
 
     def get_conversaciones(self, obj):
         return obj.cita_set.count()
+
+    def get_usuario_email(self, obj):
+        return obj.usuario.email if obj.usuario else None
 
 
 class CitaSerializer(serializers.ModelSerializer):

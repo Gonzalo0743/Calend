@@ -96,6 +96,13 @@ const navItems = [
       'M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0',
   },
   {
+    id: 'clientes',
+    label: 'Clientes',
+    ruta: '/admin/clientes',
+    icono:
+      'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+  },
+  {
     id: 'contactos',
     label: 'Contactos',
     ruta: '/admin/contactos',

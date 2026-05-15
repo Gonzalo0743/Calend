@@ -7,6 +7,13 @@ class Bot(models.Model):
     cliente = models.CharField(max_length=200)
     estado = models.CharField(max_length=50, default='Borrador')
     flujo = models.JSONField(default=dict, blank=True)
+    usuario = models.OneToOneField(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='bot'
+    )
     creado = models.DateTimeField(auto_now_add=True)
     modificado = models.DateTimeField(auto_now=True)
 

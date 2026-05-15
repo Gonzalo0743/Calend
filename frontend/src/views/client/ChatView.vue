@@ -124,54 +124,66 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
+import api from '../../services/api'
+import { useAuthStore } from '../../stores/auth'
 
-const messagesContainer = ref(null)
-const inputTexto = ref('')
-const escribiendo = ref(false)
+const route = useRoute()
+const authStore = useAuthStore()
+
+const botId = ref(route.query.bot || authStore.user?.bot_id || null)
+
+const botNombre = ref('Calend Bot')
+const cargando = ref(true)
+
+const mensajes = ref([])
 const opciones = ref([])
-const paso = ref(0)
+const escribiendo = ref(false)
+const inputTexto = ref('')
+const messagesContainer = ref(null)
 
-const mensajes = ref([
-  {
-    id: 1,
-    tipo: 'bot',
-    texto: 'Hola, bienvenido a Clinica Verde. Soy tu asistente virtual. Como te llamas?',
-  },
-])
+const nodos = ref([])
+const edges = ref([])
+const nodoActual = ref(null)
 
 let nombreCliente = ''
-let diaSeleccionado = ''
+let horaSeleccionada = ''
 
-const flujo = [
-  {
-    opciones: [],
-    respuesta: (texto) => {
-      nombreCliente = texto
-      return `Mucho gusto, ${nombreCliente}. En que te puedo ayudar hoy?`
-    },
-    siguientesOpciones: ['Agendar una cita', 'Ver mis citas', 'Cancelar una cita'],
-  },
-  {
-    opciones: ['Agendar una cita', 'Ver mis citas', 'Cancelar una cita'],
-    respuesta: () => 'Perfecto. Para que dia queres agendar tu cita?',
-    siguientesOpciones: ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'],
-  },
-  {
-    opciones: ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'],
-    respuesta: (texto) => {
-      diaSeleccionado = texto
-      return `Tengo estos horarios disponibles para el ${diaSeleccionado}:`
-    },
-    siguientesOpciones: ['9:00 am', '11:00 am', '2:00 pm', '4:00 pm'],
-  },
-  {
-    opciones: ['9:00 am', '11:00 am', '2:00 pm', '4:00 pm'],
-    respuesta: (texto) =>
-      `Listo! Tu cita quedo agendada para el ${diaSeleccionado} a las ${texto}. Te esperamos, ${nombreCliente}.`,
-    siguientesOpciones: [],
-  },
-]
+async function cargarBot() {
+  if (!botId.value) {
+    cargando.value = false
+    return
+  }
+  try {
+    const res = await api.get(`/bots/${botId.value}/`)
+    botNombre.value = res.data.nombre
+    if (res.data.flujo && res.data.flujo.nodes) {
+      nodos.value = res.data.flujo.nodes
+      edges.value = res.data.flujo.edges || []
+    }
+  } catch (err) {
+    console.error('Error cargando bot:', err)
+  } finally {
+    cargando.value = false
+  }
+}
+
+function obtenerNodoInicial() {
+  const nodosConEntrada = new Set(edges.value.map((e) => e.target))
+  return nodos.value.find((n) => !nodosConEntrada.has(n.id)) || nodos.value[0]
+}
+
+function obtenerSiguienteNodo(nodoId, handleId = null) {
+  let edge
+  if (handleId) {
+    edge = edges.value.find((e) => e.source === nodoId && e.sourceHandle === handleId)
+  } else {
+    edge = edges.value.find((e) => e.source === nodoId)
+  }
+  if (!edge) return null
+  return nodos.value.find((n) => n.id === edge.target) || null
+}
 
 async function scrollAbajo() {
   await nextTick()
@@ -180,30 +192,99 @@ async function scrollAbajo() {
   }
 }
 
-async function responderBot(texto) {
+async function procesarNodo(nodo) {
+  if (!nodo) return
+  nodoActual.value = nodo
   escribiendo.value = true
   opciones.value = []
   await scrollAbajo()
 
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  const etapa = flujo[paso.value]
-  const respuesta = etapa.respuesta(texto)
-
-  mensajes.value.push({
-    id: Date.now(),
-    tipo: 'bot',
-    texto: respuesta,
-  })
-
+  await new Promise((resolve) => setTimeout(resolve, 800))
   escribiendo.value = false
-  paso.value++
 
-  if (paso.value < flujo.length) {
-    opciones.value = flujo[paso.value].opciones
+  if (nodo.type === 'mensaje') {
+    mensajes.value.push({
+      id: Date.now(),
+      tipo: 'bot',
+      texto: nodo.data.texto,
+    })
+    await scrollAbajo()
+    const siguiente = obtenerSiguienteNodo(nodo.id)
+    if (siguiente) await procesarNodo(siguiente)
+  } else if (nodo.type === 'opciones') {
+    opciones.value = nodo.data.opciones
+    await scrollAbajo()
+  } else if (nodo.type === 'esperar') {
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+    const siguiente = obtenerSiguienteNodo(nodo.id)
+    if (siguiente) await procesarNodo(siguiente)
+  } else if (nodo.type === 'condicion') {
+    const siguiente = obtenerSiguienteNodo(nodo.id)
+    if (siguiente) await procesarNodo(siguiente)
+  }
+}
+
+async function manejarRespuestaUsuario(texto) {
+  if (!nodoActual.value) return
+
+  // Guardar datos relevantes
+  if (nodoActual.value.type === 'mensaje' && mensajes.value.length === 1) {
+    nombreCliente = texto
   }
 
-  await scrollAbajo()
+  const nodo = nodoActual.value
+
+  if (nodo.type === 'opciones') {
+    // Buscar si hay condicion conectada que coincida con la opcion elegida
+    const siguiente = obtenerSiguienteNodo(nodo.id)
+    if (!siguiente) return
+
+    if (siguiente.type === 'condicion') {
+      // Evaluar condiciones — buscar la que coincide con el texto
+      const edgesDesdeOpciones = edges.value.filter((e) => e.source === nodo.id)
+      let nodoDestino = null
+
+      for (const edge of edgesDesdeOpciones) {
+        const posibleCondicion = nodos.value.find((n) => n.id === edge.target)
+        if (posibleCondicion && posibleCondicion.type === 'condicion') {
+          const condicion = posibleCondicion.data.condicion || ''
+          const partes = condicion.split('==').map((p) => p.trim())
+          if (partes[1] && texto.toLowerCase().includes(partes[1].toLowerCase())) {
+            nodoDestino = obtenerSiguienteNodo(posibleCondicion.id)
+            break
+          }
+        }
+      }
+
+      if (nodoDestino) {
+        await procesarNodo(nodoDestino)
+      } else {
+        await procesarNodo(siguiente)
+      }
+    } else {
+      await procesarNodo(siguiente)
+    }
+  } else {
+    // Para nodos mensaje, avanzar al siguiente
+    const siguiente = obtenerSiguienteNodo(nodo.id)
+
+    // Si el nodo actual es el último mensaje antes de terminar, guardar cita
+    if (!siguiente) {
+      try {
+        await api.post('/citas/', {
+          nombre: nombreCliente || texto,
+          servicio: 'Consulta general',
+          hora: horaSeleccionada || texto,
+          estado: 'Confirmada',
+        })
+      } catch (err) {
+        console.error('Error guardando cita:', err)
+      }
+      return
+    }
+
+    await procesarNodo(siguiente)
+  }
 }
 
 async function enviarMensaje() {
@@ -218,7 +299,7 @@ async function enviarMensaje() {
 
   inputTexto.value = ''
   await scrollAbajo()
-  await responderBot(texto)
+  await manejarRespuestaUsuario(texto)
 }
 
 async function seleccionarOpcion(opcion) {
@@ -228,7 +309,16 @@ async function seleccionarOpcion(opcion) {
     texto: opcion,
   })
 
+  opciones.value = []
   await scrollAbajo()
-  await responderBot(opcion)
+  await manejarRespuestaUsuario(opcion)
 }
+
+onMounted(async () => {
+  await cargarBot()
+  if (nodos.value.length > 0) {
+    const nodoInicial = obtenerNodoInicial()
+    if (nodoInicial) await procesarNodo(nodoInicial)
+  }
+})
 </script>

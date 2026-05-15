@@ -68,12 +68,16 @@ def logout_view(request):
 @permission_classes([IsAuthenticated])
 def me_view(request):
     user = request.user
+    bot_id = None
+    if hasattr(user, 'bot'):
+        bot_id = user.bot.id
     return Response({
         'id': user.id,
         'username': user.username,
         'email': user.email,
         'is_staff': user.is_staff,
         'role': 'admin' if user.is_staff else 'client',
+        'bot_id': bot_id,
     })
 
 
@@ -193,3 +197,91 @@ def metricas(request):
         'contactos': Contacto.objects.count(),
         'conversaciones_semana': Cita.objects.filter(creado__date__gte=inicio_semana).count(),
     })
+
+# --- Usuarios clientes ---
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def clientes_list(request):
+    usuarios = User.objects.filter(is_staff=False)
+    data = [{
+        'id': u.id,
+        'username': u.username,
+        'email': u.email,
+        'tiene_bot': hasattr(u, 'bot'),
+        'bot_id': u.bot.id if hasattr(u, 'bot') else None,
+        'bot_nombre': u.bot.nombre if hasattr(u, 'bot') else None,
+    } for u in usuarios]
+    return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def crear_cliente(request):
+    username = request.data.get('username')
+    email = request.data.get('email')
+    password = request.data.get('password')
+    bot_id = request.data.get('bot_id')
+
+    if not username or not email or not password:
+        return Response(
+            {'error': 'Username, email y password son requeridos'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if User.objects.filter(email=email).exists():
+        return Response(
+            {'error': 'Ya existe un usuario con ese email'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    user = User.objects.create_user(
+        username=username,
+        email=email,
+        password=password,
+        is_staff=False
+    )
+
+    if bot_id:
+        try:
+            bot = Bot.objects.get(pk=bot_id)
+            bot.usuario = user
+            bot.save()
+        except Bot.DoesNotExist:
+            pass
+
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'bot_id': bot_id,
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def asignar_bot(request):
+    user_id = request.data.get('user_id')
+    bot_id = request.data.get('bot_id')
+
+    if not user_id or not bot_id:
+        return Response(
+            {'error': 'user_id y bot_id son requeridos'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        user = User.objects.get(pk=user_id)
+        bot = Bot.objects.get(pk=bot_id)
+
+        # Desasignar bot anterior si lo tiene
+        Bot.objects.filter(usuario=user).update(usuario=None)
+
+        bot.usuario = user
+        bot.save()
+
+        return Response({'message': 'Bot asignado correctamente'})
+    except User.DoesNotExist:
+        return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    except Bot.DoesNotExist:
+        return Response({'error': 'Bot no encontrado'}, status=status.HTTP_404_NOT_FOUND)
